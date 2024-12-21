@@ -50,6 +50,32 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(todo)
 }
 
+func GetTodosHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, ok := r.Context().Value(middlewares.UserIDKey).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	user := models.User{ID: uuid.MustParse(userID)}
+
+	todos, err := controllers.GetTodos(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(todos)
+}
+
 func TodoRoutes() {
 	http.Handle("/todo/create", middlewares.AuthMiddleware(http.HandlerFunc(CreateTodoHandler)))
+
+	http.Handle("/todo/get", middlewares.AuthMiddleware(http.HandlerFunc(GetTodosHandler)))
 }
