@@ -52,33 +52,74 @@ func GetTodos(user models.User) ([]models.Todo, error) {
 
 	var todos []models.Todo
 	if err := json.Unmarshal(resp, &todos); err != nil {
-		return nil, fmt.Errorf("error unmarshalling todos: %v", err)
+		return nil, fmt.Errorf("error unmarshalling todos: %w", err)
 	}
 
 	return todos, nil
 }
 
-func UpdateTodo(user models.User, todoID uuid.UUID, title, description string, status models.TodoStatus) (models.Todo, error) {
+func GetTodo(todoID uuid.UUID) (models.Todo, error) {
+	client := database.SupabaseClient
+
+	resp, _, err := client.From("todos").Select("*", "exact", false).Eq("id", todoID.String()).Single().Execute()
+	if err != nil {
+		return models.Todo{}, fmt.Errorf("error fetching todo: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return models.Todo{}, errors.New("todo not found")
+	}
+
+	var fetchedTodo models.Todo
+	if err := json.Unmarshal(resp, &fetchedTodo); err != nil {
+		return models.Todo{}, fmt.Errorf("error unmarshalling todo: %w", err)
+	}
+
+	return fetchedTodo, nil
+}
+
+func UpdateTodo(todo models.Todo) (models.Todo, error) {
+	client := database.SupabaseClient
+
+	resp, _, err := client.From("todos").Update(todo, "exact", "").Eq("id", todo.ID.String()).Execute()
+	if err != nil {
+		return models.Todo{}, fmt.Errorf("error updating todo: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return models.Todo{}, errors.New("no response from database")
+	}
+
+	var updatedTodo models.Todo
+	if err := json.Unmarshal(resp, &updatedTodo); err != nil {
+		return models.Todo{}, fmt.Errorf("error unmarshalling updated todo: %w", err)
+	}
+
+	return updatedTodo, nil
+}
+
+func UpdateTodoStatus(todoID uuid.UUID, status models.TodoStatus) (models.Todo, error) {
 	client := database.SupabaseClient
 
 	updateData := map[string]interface{}{
-		"title":       title,
-		"description": description,
-		"status":      status,
+		"status": status,
 	}
 
-	_, _, err := client.From("todos").Update(updateData, "exact", "").Eq("id", todoID.String()).Eq("user_id", user.ID.String()).Execute()
+	resp, _, err := client.From("todos").Update(updateData, "exact", "").Eq("id", todoID.String()).Execute()
 	if err != nil {
+		return models.Todo{}, fmt.Errorf("error updating todo status: %w", err)
 	}
 
-	return models.Todo{
-		ID:          todoID,
-		UserID:      user.ID,
-		Title:       title,
-		Description: description,
-		Status:      status,
-		CreatedAt:   models.MyTime(time.Now()),
-	}, nil
+	if len(resp) == 0 {
+		return models.Todo{}, errors.New("no response from database, todo may not exist")
+	}
+
+	var updatedTodo models.Todo
+	if err := json.Unmarshal(resp, &updatedTodo); err != nil {
+		return models.Todo{}, fmt.Errorf("error unmarshalling updated todo: %w", err)
+	}
+
+	return updatedTodo, nil
 }
 
 func DeleteTodo(user models.User, todoID uuid.UUID) error {
