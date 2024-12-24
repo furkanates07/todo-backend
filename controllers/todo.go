@@ -111,7 +111,11 @@ func UpdateTodoStatus(todoID uuid.UUID, status models.TodoStatus) (models.Todo, 
 	}
 
 	if len(resp) == 0 {
-		return models.Todo{}, errors.New("no response from database, todo may not exist")
+		todo, err := GetTodo(todoID)
+		if err != nil {
+			return models.Todo{}, err
+		}
+		return todo, nil
 	}
 
 	var updatedTodo models.Todo
