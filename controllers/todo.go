@@ -87,7 +87,7 @@ func UpdateTodo(todo models.Todo) (models.Todo, error) {
 	}
 
 	if len(resp) == 0 {
-		return models.Todo{}, errors.New("no response from database")
+		return todo, nil
 	}
 
 	var updatedTodo models.Todo
