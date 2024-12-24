@@ -26,8 +26,12 @@ func CreateTodo(user models.User, title, description string) (models.Todo, error
 	fmt.Println("Inserting new todo for user:", user.ID)
 
 	resp, _, err := client.From("todos").Insert(todo, false, "", "", "").Execute()
-	if err != nil || len(resp) == 0 {
-		return models.Todo{}, fmt.Errorf("error creating todo: %v", err)
+	if err != nil {
+		return models.Todo{}, fmt.Errorf("error creating todo: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return models.Todo{}, errors.New("no response from database")
 	}
 
 	fmt.Println("Todo created successfully!")
@@ -39,7 +43,11 @@ func GetTodos(user models.User) ([]models.Todo, error) {
 
 	resp, _, err := client.From("todos").Select("*", "exact", false).Eq("user_id", user.ID.String()).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error fetching todos: %v", err)
+		return nil, fmt.Errorf("error fetching todos: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return nil, errors.New("no todos found")
 	}
 
 	var todos []models.Todo
