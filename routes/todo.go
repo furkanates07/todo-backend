@@ -23,7 +23,6 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		UserID      string `json:"user_id"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
 	}
