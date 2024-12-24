@@ -126,13 +126,15 @@ func UpdateTodoStatus(todoID uuid.UUID, status models.TodoStatus) (models.Todo, 
 	return updatedTodo, nil
 }
 
-func DeleteTodo(user models.User, todoID uuid.UUID) error {
+func DeleteTodo(todoID uuid.UUID) error {
 	client := database.SupabaseClient
 
-	_, _, err := client.From("todos").Delete("exact", "").Eq("id", todoID.String()).Eq("user_id", user.ID.String()).Execute()
+	_, _, err := client.From("todos").Delete("exact", "").Eq("id", todoID.String()).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting todo: %w", err)
 	}
+
+	fmt.Println("Todo deleted successfully!")
 
 	return nil
 }

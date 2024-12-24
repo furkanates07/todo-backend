@@ -220,6 +220,48 @@ func UpdateTodoStatusHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatedTodo)
 }
 
+func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, ok := r.Context().Value(middlewares.UserIDKey).(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	todoIDStr := r.URL.Path[len("/todo/delete/"):]
+	todoID, err := uuid.Parse(todoIDStr)
+	if err != nil {
+		http.Error(w, "Invalid Todo ID", http.StatusBadRequest)
+		return
+	}
+
+	todo, err := controllers.GetTodo(todoID)
+	if err != nil {
+		if err.Error() == "todo not found" {
+			http.Error(w, "Todo not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if todo.UserID != userID {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := controllers.DeleteTodo(todo.ID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func TodoRoutes() {
 	http.Handle("/todo/create", middlewares.AuthMiddleware(http.HandlerFunc(CreateTodoHandler)))
 
@@ -230,4 +272,6 @@ func TodoRoutes() {
 	http.Handle("/todo/update/", middlewares.AuthMiddleware(http.HandlerFunc(UpdateTodoHandler)))
 
 	http.Handle("/todo/update/status/", middlewares.AuthMiddleware(http.HandlerFunc(UpdateTodoStatusHandler)))
+
+	http.Handle("/todo/delete/", middlewares.AuthMiddleware(http.HandlerFunc(DeleteTodoHandler)))
 }
