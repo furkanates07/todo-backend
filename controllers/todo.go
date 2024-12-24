@@ -23,7 +23,7 @@ func CreateTodo(user models.User, title, description string) (models.Todo, error
 		CreatedAt:   models.MyTime(time.Now()),
 	}
 
-	fmt.Println("Attempting to insert todo into the database...")
+	fmt.Println("Inserting new todo for user:", user.ID)
 
 	resp, _, err := client.From("todos").Insert(todo, false, "", "", "").Execute()
 	if err != nil || len(resp) == 0 {
@@ -61,7 +61,6 @@ func UpdateTodo(user models.User, todoID uuid.UUID, title, description string, s
 
 	_, _, err := client.From("todos").Update(updateData, "exact", "").Eq("id", todoID.String()).Eq("user_id", user.ID.String()).Execute()
 	if err != nil {
-		return models.Todo{}, fmt.Errorf("error updating todo: %v", err)
 	}
 
 	return models.Todo{
@@ -79,7 +78,7 @@ func DeleteTodo(user models.User, todoID uuid.UUID) error {
 
 	_, _, err := client.From("todos").Delete("exact", "").Eq("id", todoID.String()).Eq("user_id", user.ID.String()).Execute()
 	if err != nil {
-		return errors.New("todo not found or unauthorized")
+		return fmt.Errorf("error deleting todo: %w", err)
 	}
 
 	return nil
