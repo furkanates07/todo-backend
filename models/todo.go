@@ -12,10 +12,10 @@ const (
 )
 
 type Todo struct {
-	ID          uuid.UUID   `json:"id"`
-	UserID      uuid.UUID   `json:"user_id"`       
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Status      TodoStatus `json:"status"`         
+	ID          uuid.UUID  `json:"id"`
+	UserID      uuid.UUID  `json:"user_id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Status      TodoStatus `json:"status"`
 	CreatedAt   MyTime     `json:"created_at"`
 }
