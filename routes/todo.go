@@ -16,7 +16,7 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := r.Context().Value(middlewares.UserIDKey).(string)
+	userID, ok := r.Context().Value(middlewares.UserIDKey).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -32,12 +32,20 @@ func CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userID != requestBody.UserID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+	user := models.User{
+		ID: userID,
+	}
+
+	todo, err := controllers.CreateTodo(user, requestBody.Title, requestBody.Description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	user := models.User{ID: uuid.MustParse(userID)}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(todo)
+}
+
 func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -82,13 +90,13 @@ func GetTodosHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, ok := r.Context().Value(middlewares.UserIDKey).(string)
+	userID, ok := r.Context().Value(middlewares.UserIDKey).(uuid.UUID)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	user := models.User{ID: uuid.MustParse(userID)}
+	user := models.User{ID: userID}
 
 	todos, err := controllers.GetTodos(user)
 	if err != nil {
