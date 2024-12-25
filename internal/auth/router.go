@@ -1,10 +1,10 @@
-package routes
+package auth
 
 import (
 	"net/http"
 )
 
-func AuthRoutes() {
+func InitRoutes() {
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 }

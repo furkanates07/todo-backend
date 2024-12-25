@@ -1,11 +1,11 @@
-package routes
+package todo
 
 import (
 	"net/http"
 	"todo-backend/middlewares"
 )
 
-func TodoRoutes() {
+func InitRoutes() {
 	http.Handle("/todo/create", middlewares.AuthMiddleware(http.HandlerFunc(CreateTodoHandler)))
 
 	http.Handle("/todo/get/", middlewares.AuthMiddleware(http.HandlerFunc(GetTodoHandler)))
