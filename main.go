@@ -4,14 +4,15 @@ import (
 	"log"
 	"net/http"
 	"todo-backend/database"
-	"todo-backend/routes"
+	authroutes "todo-backend/routes/auth"
+	todoroutes "todo-backend/routes/todo"
 )
 
 func main() {
 	database.ConnectDB()
 
-	routes.AuthRoutes()
-	routes.TodoRoutes()
+	authroutes.AuthRoutes()
+	todoroutes.TodoRoutes()
 
 	log.Println("Server running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
