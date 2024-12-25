@@ -53,8 +53,3 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(token)
 }
-
-func AuthRoutes() {
-	http.HandleFunc("/register", RegisterHandler)
-	http.HandleFunc("/login", LoginHandler)
-}
